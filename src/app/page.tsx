@@ -15,6 +15,9 @@ import {
   X,
 } from "lucide-react";
 
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
 export default function Home() {
   // Theme & Layout State
   const [mounted, setMounted] = useState(false);
@@ -314,10 +317,18 @@ export default function Home() {
                       className={`max-w-[90%] md:max-w-[75%] rounded-2xl p-4 text-[15px] leading-relaxed shadow-sm ${
                         msg.role === "user"
                           ? "bg-indigo-600 text-white rounded-tr-sm"
-                          : "bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 rounded-tl-sm"
+                          : "bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 rounded-tl-sm overflow-x-auto"
                       }`}
                     >
-                      {msg.content}
+                      {msg.role === "user" ? (
+                        msg.content
+                      ) : (
+                        <div className="flex flex-col gap-3 [&>p]:leading-relaxed [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5 [&_strong]:font-semibold [&>pre]:bg-slate-800 dark:[&>pre]:bg-black [&>pre]:text-slate-100 [&>pre]:p-4 [&>pre]:rounded-xl [&>pre]:overflow-x-auto [&:not(pre)>code]:bg-slate-100 dark:[&:not(pre)>code]:bg-zinc-800 [&:not(pre)>code]:px-1.5 [&:not(pre)>code]:py-0.5 [&:not(pre)>code]:rounded-md [&:not(pre)>code]:text-sm">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {msg.content}
+                          </ReactMarkdown>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))
