@@ -17,6 +17,7 @@ import {
 
 export default function Home() {
   // Theme & Layout State
+  const [mounted, setMounted] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -34,6 +35,10 @@ export default function Home() {
 
   // Auto-scroll reference
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -114,6 +119,10 @@ export default function Home() {
       setIsChatting(false);
     }
   };
+
+  if (!mounted) {
+    return null; // Prevents the server and client from mismatching
+  }
 
   return (
     // Outer Theme Wrapper
@@ -199,7 +208,7 @@ export default function Home() {
               <button
                 onClick={handleUpload}
                 disabled={!file || isUploading}
-                className="w-full bg-slate-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-semibold py-3 px-4 rounded-xl hover:bg-slate-800 dark:hover:bg-white active:scale-[0.98] disabled:bg-slate-200 disabled:text-slate-400 dark:disabled:bg-zinc-800 dark:disabled:text-zinc-600 disabled:scale-100 transition-all flex justify-center items-center gap-2 shadow-sm"
+                className=" cursor-pointer w-full bg-slate-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-semibold py-3 px-4 rounded-xl hover:bg-slate-800 dark:hover:bg-white active:scale-[0.98] disabled:bg-slate-200 disabled:text-slate-400 dark:disabled:bg-zinc-800 dark:disabled:text-zinc-600 disabled:scale-100 transition-all flex justify-center items-center gap-2 shadow-sm"
               >
                 {isUploading ? (
                   <>
@@ -269,7 +278,7 @@ export default function Home() {
               {/* Theme Toggle Button */}
               <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
-                className="p-2.5 rounded-full bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-800 transition-colors"
+                className=" cursor-pointer p-2.5 rounded-full bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-800 transition-colors"
                 aria-label="Toggle Dark Mode"
               >
                 {isDarkMode ? (
@@ -357,7 +366,7 @@ export default function Home() {
                     isChatting ||
                     !uploadStatus.includes("Success")
                   }
-                  className="h-[48px] md:h-[54px] px-4 md:px-6 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 active:scale-[0.98] disabled:bg-slate-200 disabled:text-slate-400 dark:disabled:bg-zinc-800 dark:disabled:text-zinc-600 disabled:scale-100 transition-all flex items-center justify-center gap-2 shadow-sm shrink-0"
+                  className="cursor-pointer h-[48px] md:h-[54px] px-4 md:px-6 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 active:scale-[0.98] disabled:bg-slate-200 disabled:text-slate-400 dark:disabled:bg-zinc-800 dark:disabled:text-zinc-600 disabled:scale-100 transition-all flex items-center justify-center gap-2 shadow-sm shrink-0"
                 >
                   <span className="hidden sm:inline">Send</span>
                   <Send className="w-4 h-4" />
