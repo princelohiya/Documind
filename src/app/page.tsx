@@ -90,6 +90,8 @@ export default function Home() {
 
     const userMessage = input;
     setInput("");
+
+    // Add the user's message to the chat
     setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
     setIsChatting(true);
 
@@ -100,23 +102,37 @@ export default function Home() {
         body: JSON.stringify({ message: userMessage }),
       });
 
-      const data = await res.json();
+      if (!res.ok) throw new Error("Failed to connect to the server.");
+      if (!res.body) throw new Error("No response body.");
 
-      if (res.ok) {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: data.answer },
-        ]);
-      } else {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: `Error: ${data.error}` },
-        ]);
+      // ✨ THE UPGRADE: Reading the Stream!
+      // Add a blank AI message to the screen first
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let aiResponse = "";
+
+      // Loop through the stream chunk by chunk
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        // Decode the new words and add them to our string
+        const chunk = decoder.decode(value, { stream: true });
+        aiResponse += chunk;
+
+        // Update the very last message in our state (the AI's message) with the new text
+        setMessages((prev) => {
+          const updatedMessages = [...prev];
+          updatedMessages[updatedMessages.length - 1].content = aiResponse;
+          return updatedMessages;
+        });
       }
     } catch (error) {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Failed to connect to the server." },
+        { role: "assistant", content: "Error: Failed to process chat query." },
       ]);
     } finally {
       setIsChatting(false);
@@ -130,7 +146,7 @@ export default function Home() {
   return (
     // Outer Theme Wrapper
     <div className={isDarkMode ? "dark" : ""}>
-      <div className="min-h-[100dvh] bg-slate-50 dark:bg-zinc-950 text-slate-800 dark:text-zinc-100 font-sans selection:bg-indigo-200 dark:selection:bg-indigo-900 transition-colors duration-300 md:p-8 flex items-center justify-center">
+      <div className="min-h-[100dvh] bg-slate-200 dark:bg-zinc-800 text-slate-800 dark:text-zinc-100 font-sans selection:bg-indigo-200 dark:selection:bg-indigo-900 transition-colors duration-300 md:p-8 flex items-center justify-center">
         {/* Main Application Container */}
         <div className="w-full h-[100dvh] md:h-[85vh] md:min-h-[600px] max-w-6xl bg-white dark:bg-zinc-900 md:shadow-2xl shadow-slate-200/50 dark:shadow-none md:rounded-3xl overflow-hidden flex relative border-0 md:border border-slate-100 dark:border-zinc-800 transition-colors duration-300">
           {/* Mobile Menu Backdrop */}
@@ -141,7 +157,7 @@ export default function Home() {
             />
           )}
 
-          {/* LEFT PANEL: Sidebar & Upload (Responsive Drawer) */}
+          {/* LEFT NEL: Sidebar & Upload (Responsive Drawer) */}
           <div
             className={`
             absolute inset-y-0 left-0 z-50 w-80 bg-slate-50 dark:bg-zinc-900/50 border-r border-slate-200 dark:border-zinc-800 flex flex-col transform transition-transform duration-300 ease-in-out
@@ -167,7 +183,7 @@ export default function Home() {
               {/* Close button for mobile */}
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="md:hidden p-2 text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+                className="cursor-pointer md:hidden p-2 text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -182,7 +198,8 @@ export default function Home() {
               <div className="relative group mb-4">
                 <input
                   type="file"
-                  accept="application/pdf"
+                  // Change this line to accept our new supported formats!
+                  accept=".pdf,.txt,.csv,.md"
                   onChange={handleFileChange}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                 />
