@@ -14,16 +14,37 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // 2. Use WebPDFLoader (Bypasses pdf-parse completely and uses Mozilla's engine)
-    const loader = new WebPDFLoader(file);
-    const rawDocs = await loader.load();
+    let rawText = "";
 
-    const rawText = rawDocs.map((doc) => doc.pageContent).join(" ");
+    // ✨ QUICK WIN UPGRADE: Multi-File Support
+    if (file.type === "application/pdf") {
+      const loader = new WebPDFLoader(file);
+      const rawDocs = await loader.load();
+      rawText = rawDocs.map((doc) => doc.pageContent).join(" ");
+    } else if (
+      file.type === "text/plain" ||
+      file.type === "text/csv" ||
+      file.name.endsWith(".md")
+    ) {
+      // Native JavaScript can extract text from TXT, CSV, and MD files instantly!
+      rawText = await file.text();
+    } else {
+      return NextResponse.json(
+        {
+          error:
+            "Unsupported file type. Please upload a PDF, TXT, CSV, or MD file.",
+        },
+        { status: 400 },
+      );
+    }
 
-    // SAFETY CHECK 1: Did we actually get text out of the PDF?
+    // SAFETY CHECK 1: Did we actually get text?
     if (!rawText || rawText.trim() === "") {
       return NextResponse.json(
-        { error: "No readable text found in PDF. Is it a scanned image?" },
+        {
+          error:
+            "No readable text found in file. Is it an empty or scanned document?",
+        },
         { status: 400 },
       );
     }
@@ -49,12 +70,12 @@ export async function POST(req: Request) {
       validChunks.map(async (chunk, i) => {
         const rawVector = await embeddings.embedQuery(chunk.pageContent);
 
-        // FIX: Manually slice the first 768 numbers using JavaScript!
+        // FIX: Manually slice the first 768 numbers
         const truncatedVector = rawVector.slice(0, 768);
 
         return {
           id: `chunk-${crypto.randomUUID()}-${i}`,
-          values: truncatedVector, // Pass the mathematically sliced vector
+          values: truncatedVector,
           metadata: {
             text: chunk.pageContent,
           },
@@ -62,11 +83,7 @@ export async function POST(req: Request) {
       }),
     );
 
-    // SAFETY CHECK 3: Ensure Google actually returned 768 numbers before sending to Pinecone
-    // Debug step: Print the exact length to the terminal so you can see it
-    console.log("Vector generation sample length:", vectors[0]?.values?.length);
-
-    // FIX: Dynamically allow any valid numerical array that Google hands back
+    // FIX: Dynamically allow valid numerical arrays
     const validVectors = vectors.filter(
       (v) => v.values && Array.isArray(v.values) && v.values.length > 0,
     );
@@ -77,6 +94,16 @@ export async function POST(req: Request) {
         { status: 500 },
       );
     }
+
+    // 🐛 BUG FIX: The "Mind Wipe"
+    // This explicitly deletes old document vectors so they don't contaminate the new ones
+    try {
+      await index.deleteAll();
+      console.log("Old document erased from Pinecone.");
+    } catch (error) {
+      console.log("Database is already empty or clear failed.");
+    }
+
     await index.upsert({ records: validVectors });
 
     return NextResponse.json({
