@@ -148,7 +148,7 @@ export default function Home() {
     <div className={isDarkMode ? "dark" : ""}>
       <div className="min-h-[100dvh] bg-slate-200 dark:bg-zinc-800 text-slate-800 dark:text-zinc-100 font-sans selection:bg-indigo-200 dark:selection:bg-indigo-900 transition-colors duration-300 md:p-8 flex items-center justify-center">
         {/* Main Application Container */}
-        <div className="w-full h-[100dvh] md:h-[85vh] md:min-h-[600px] max-w-6xl bg-white dark:bg-zinc-900 md:shadow-2xl shadow-slate-200/50 dark:shadow-none md:rounded-3xl overflow-hidden flex relative border-0 md:border border-slate-100 dark:border-zinc-800 transition-colors duration-300">
+        <div className="w-full h-[100dvh] md:h-[85vh] md:min-h-[550px] max-w-7xl bg-white dark:bg-zinc-900 md:shadow-2xl shadow-slate-200/50 dark:shadow-none md:rounded-3xl overflow-hidden flex relative border-0 md:border border-slate-100 dark:border-zinc-800 transition-colors duration-300">
           {/* Mobile Menu Backdrop */}
           {isMobileMenuOpen && (
             <div
@@ -168,12 +168,10 @@ export default function Home() {
             {/* Brand Header */}
             <div className="p-6 border-b border-slate-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <div className="bg-indigo-600 dark:bg-indigo-500 p-2 rounded-xl shadow-sm shadow-indigo-200 dark:shadow-none">
-                  <Brain className="w-5 h-5 text-white" />
-                </div>
+                <img className="rounded-l" src="favicon.ico" alt="" />
                 <div>
-                  <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-                    DocuMind
+                  <h1 className="text-xl font-bold tracking-tight text-indigo-600  dark:text-indigo-600">
+                    DocMind
                   </h1>
                   <p className="text-[10px] text-slate-500 dark:text-zinc-400 font-medium uppercase tracking-wider">
                     Enterprise RAG
@@ -287,7 +285,7 @@ export default function Home() {
                       className={`relative inline-flex rounded-full h-2.5 w-2.5 ${uploadStatus.includes("Success") ? "bg-emerald-500" : "bg-amber-500"}`}
                     ></span>
                   </span>
-                  <span className="text-sm font-medium text-slate-600 dark:text-zinc-400 hidden sm:inline-block">
+                  <span className="text-sm font-medium text-slate-600 dark:text-zinc-400">
                     {uploadStatus.includes("Success")
                       ? "Database Ready"
                       : "Awaiting Document"}
@@ -310,7 +308,7 @@ export default function Home() {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 flex flex-col gap-6">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 flex flex-col gap-6 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-zinc-700 scrollbar-track-slate-100 dark:scrollbar-track-zinc-800 ">
               {messages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center max-w-sm mx-auto space-y-4 px-4">
                   <div className="bg-slate-50 dark:bg-zinc-900 p-4 rounded-full">
@@ -374,7 +372,10 @@ export default function Home() {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-white dark:bg-zinc-950 border-t border-slate-100 dark:border-zinc-800 shrink-0">
+            <div className="relative p-4 bg-white dark:bg-zinc-950 border-t border-slate-100 dark:border-zinc-800 shrink-0 ">
+              {/* Blur/fade layer */}
+              <div className="absolute left-0 right-0 -top-8 h-12 pointer-events-none backdrop-blur-xs bg-gradient-to-b from-transparent to-white dark:to-zinc-950" />
+
               <form
                 onSubmit={handleChatSubmit}
                 className="max-w-4xl mx-auto relative group flex items-center gap-2 md:gap-3"
